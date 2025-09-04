@@ -5,45 +5,77 @@
       <p>Économisez avec nos packs intelligents et démarrez votre bibliothèque idéale</p>
     </div>
 
-    <div class="packs-grid">
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="error">
+      {{ error }}
+      <button class="close-error" (click)="error = ''">×</button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement des packs...</p>
+    </div>
+
+    <div class="packs-grid" *ngIf="!loading && packs.length > 0">
       <div 
         *ngFor="let pack of packs" 
         class="pack-card"
-        [class.highlight]="pack.isHighlight"
+        [class.featured]="pack.isFeatured"
       >
-        <div [class]="getBadgeClass(pack.badge)">
-          {{ getBadgeText(pack.badge) }}
+        <div class="pack-image" *ngIf="pack.imageUrl">
+          <img [src]="pack.imageUrl" [alt]="pack.name" />
+          <div class="featured-badge" *ngIf="pack.isFeatured">⭐ Vedette</div>
         </div>
 
-        <h3 class="pack-title">{{ pack.title }}</h3>
-        <p class="pack-description">{{ pack.description }}</p>
+        <div class="pack-content">
+          <h3 class="pack-title">{{ pack.name }}</h3>
+          <p class="pack-description">{{ pack.description }}</p>
 
-        <div class="pack-books">
-          <h4>Livres inclus :</h4>
-          <ul class="books-list">
-            <li *ngFor="let book of pack.books">{{ book.title }}</li>
-          </ul>
+          <div class="pack-details">
+            <div class="pack-category" *ngIf="pack.category">
+              <span class="category-badge">{{ pack.category }}</span>
+            </div>
+            
+            <div class="pack-stock" *ngIf="pack.stockQuantity !== undefined">
+              <span [class.low-stock]="pack.stockQuantity < 5" [class.out-of-stock]="pack.stockQuantity === 0">
+                {{ pack.stockQuantity > 0 ? pack.stockQuantity + ' en stock' : 'Rupture de stock' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="pack-price">
+            <span class="price-new">{{ pack.price }} MAD</span>
+          </div>
+
+          <button 
+            class="btn btn-primary"
+            [disabled]="!pack.isActive || pack.stockQuantity === 0"
+          >
+            {{ pack.stockQuantity === 0 ? 'Rupture de stock' : 'Commander ce pack' }}
+          </button>
         </div>
-
-        <div class="pack-price">
-          <span class="price-new">{{ pack.price }} MAD</span>
-          <span class="price-old" *ngIf="pack.originalPrice">{{ pack.originalPrice }} MAD</span>
-        </div>
-
-        <a routerLink="/all-books" class="btn btn-primary">
-          Commander ce pack
-        </a>
       </div>
     </div>
 
-    <div class="packs-info">
+    <!-- No Packs Message -->
+    <div class="no-packs" *ngIf="!loading && packs.length === 0 && !error">
+      <div class="no-packs-content">
+        <span class="no-packs-icon">📦</span>
+        <h3>Aucun pack disponible</h3>
+        <p>Nos packs sont en cours de préparation. Revenez bientôt !</p>
+        <a routerLink="/all-books" class="btn btn-primary">Voir tous les livres</a>
+      </div>
+    </div>
+
+    <div class="packs-info" *ngIf="!loading && packs.length > 0">
       <div class="info-card">
         <h3>Pourquoi choisir nos packs ?</h3>
         <ul>
-          <li>✅ Économies garanties jusqu'à 20%</li>
+          <li>✅ Économies garanties</li>
           <li>✅ Sélection experte par thème</li>
           <li>✅ Livraison groupée</li>
-          <li>✅ Cadeaux exclusifs inclus</li>
+          <li>✅ Collections soigneusement assemblées</li>
         </ul>
       </div>
     </div>

@@ -2,28 +2,163 @@
   <div class="container">
     <div class="page-header">
       <h1>Offres du moment</h1>
-      <p>Profitez des remises limitées et des cadeaux exclusifs</p>
+      <p>Profitez des remises limitées et des offres exclusives</p>
     </div>
 
-    <div class="offers-grid">
-      <div *ngFor="let offer of offers" class="offer-card">
-        <div class="offer-content">
-          <h3>{{ offer.title }}</h3>
-          <p>{{ offer.description }}</p>
-          <div class="offer-discount">{{ offer.discount }}</div>
-          <a routerLink="/all-books" class="btn btn-primary">J'en profite</a>
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="error">
+      {{ error }}
+      <button class="close-error" (click)="error = ''">×</button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement des offres...</p>
+    </div>
+
+    <!-- Daily Offers Section -->
+    <div class="section" *ngIf="!loading && dailyOffers.length > 0">
+      <div class="section-header">
+        <h2>🔥 Offres quotidiennes</h2>
+        <p>Promotions limitées dans le temps</p>
+      </div>
+      
+      <div class="daily-offers-grid">
+        <div *ngFor="let offer of dailyOffers" class="daily-offer-card" [class.expired]="!isOfferValid(offer)">
+          <!-- Offer Image -->
+          <div class="offer-image" *ngIf="offer.image">
+            <img [src]="offer.image" [alt]="offer.title" />
+            <div class="discount-badge" *ngIf="offer.discountPercentage">
+              -{{ offer.discountPercentage }}%
+            </div>
+          </div>
+          
+          <!-- Offer Content -->
+          <div class="offer-content">
+            <h3>{{ offer.title }}</h3>
+            <p>{{ offer.description }}</p>
+            
+            <!-- Pricing -->
+            <div class="offer-pricing">
+              <span class="offer-price">{{ offer.offerPrice }} MAD</span>
+              <span class="original-price">{{ offer.originalPrice }} MAD</span>
+              <span class="savings">
+                Économisez {{ calculateSavings(offer.originalPrice, offer.offerPrice) }} MAD
+              </span>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="product-info" *ngIf="offer.book || offer.pack">
+              <div *ngIf="offer.book" class="product-type">
+                📖 Livre: {{ offer.book.title }}
+              </div>
+              <div *ngIf="offer.pack" class="product-type">
+                📦 Pack: {{ offer.pack.name }}
+              </div>
+            </div>
+            
+            <!-- Time Remaining -->
+            <div class="time-remaining" *ngIf="isOfferValid(offer)">
+              <span class="timer-icon">⏰</span>
+              Plus que {{ getDaysRemaining(offer.endDate) }} jour(s) !
+            </div>
+            
+            <!-- Quantity Info -->
+            <div class="quantity-info" *ngIf="offer.limitQuantity">
+              <div class="stock-bar">
+                <div class="stock-progress" 
+                     [style.width.%]="((offer.limitQuantity - (offer.soldQuantity || 0)) / offer.limitQuantity) * 100">
+                </div>
+              </div>
+              <span class="stock-text">
+                {{ offer.limitQuantity - (offer.soldQuantity || 0) }} / {{ offer.limitQuantity }} disponibles
+              </span>
+            </div>
+            
+            <!-- Action Button -->
+            <div class="offer-actions">
+              <button class="btn btn-primary" 
+                      [disabled]="!isOfferValid(offer) || (offer.limitQuantity && (offer.soldQuantity || 0) >= offer.limitQuantity)"
+                      (click)="loadOffersAndPacks()">
+                {{ isOfferValid(offer) ? "J'en profite" : "Offre expirée" }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="offers-info">
+    <!-- Packs Section -->
+    <div class="section" *ngIf="!loading && packs.length > 0">
+      <div class="section-header">
+        <h2>📦 Nos packs exclusifs</h2>
+        <p>Des collections spécialement sélectionnées pour vous</p>
+      </div>
+      
+      <div class="packs-grid">
+        <div *ngFor="let pack of packs" class="pack-card" [class.featured]="pack.isFeatured">
+          <!-- Pack Image -->
+          <div class="pack-image" *ngIf="pack.imageUrl">
+            <img [src]="pack.imageUrl" [alt]="pack.name" />
+            <div class="featured-badge" *ngIf="pack.isFeatured">⭐ Vedette</div>
+          </div>
+          
+          <!-- Pack Content -->
+          <div class="pack-content">
+            <h3>{{ pack.name }}</h3>
+            <p>{{ pack.description }}</p>
+            
+            <!-- Pack Info -->
+            <div class="pack-info">
+              <div class="pack-price">
+                <span class="current-price">{{ pack.price }} MAD</span>
+              </div>
+              
+              <div class="pack-category" *ngIf="pack.category">
+                <span class="category-badge">{{ pack.category }}</span>
+              </div>
+              
+              <div class="pack-stock" *ngIf="pack.stockQuantity !== undefined">
+                <span [class.low-stock]="pack.stockQuantity < 5" [class.out-of-stock]="pack.stockQuantity === 0">
+                  {{ pack.stockQuantity > 0 ? pack.stockQuantity + ' en stock' : 'Rupture de stock' }}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Action Button -->
+            <div class="pack-actions">
+              <button class="btn btn-primary" 
+                      [disabled]="!pack.isActive || pack.stockQuantity === 0"
+                      (click)="loadOffersAndPacks()">
+                {{ pack.stockQuantity === 0 ? 'Rupture de stock' : 'Voir le pack' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Content Message -->
+    <div class="no-content" *ngIf="!loading && dailyOffers.length === 0 && packs.length === 0">
+      <div class="no-content-message">
+        <span class="no-content-icon">🎁</span>
+        <h3>Aucune offre disponible pour le moment</h3>
+        <p>Revenez bientôt pour découvrir nos nouvelles promotions !</p>
+        <a routerLink="/all-books" class="btn btn-primary">Voir tous les livres</a>
+      </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="offers-info" *ngIf="!loading && (dailyOffers.length > 0 || packs.length > 0)">
       <div class="info-card">
         <h3>Conditions des offres</h3>
         <ul>
-          <li>🎯 Offres valables jusqu'au 31 décembre 2024</li>
-          <li>📦 Livraison offerte à partir de 400 MAD</li>
-          <li>🎁 Cadeaux exclusifs pour les premières commandes</li>
+          <li>🎯 Offres valables dans la limite des stocks disponibles</li>
+          <li>📦 Livraison rapide partout au Maroc</li>
+          <li>🎁 Offres non cumulables avec d'autres promotions</li>
           <li>💳 Paiement sécurisé à la livraison</li>
+          <li>📞 Service client disponible pour vous accompagner</li>
         </ul>
       </div>
     </div>

@@ -22,18 +22,20 @@
 
     <!-- Filters -->
     <div class="filters">
+      <!-- Recherche textuelle -->
       <div class="search-box">
         <input 
           type="text" 
           [(ngModel)]="searchQuery" 
           (input)="onSearch()"
-          placeholder="Rechercher un livre ou un auteur..."
+          placeholder="Rechercher par titre, auteur ou description..."
           class="search-input"
           [disabled]="loading"
         >
         <span class="search-icon">🔍</span>
       </div>
       
+      <!-- Filtres par catégorie -->
       <div class="category-filters">
         <button 
           *ngFor="let category of categories"
@@ -43,6 +45,60 @@
           [disabled]="loading"
         >
           {{ category.label }}
+        </button>
+      </div>
+
+      <!-- Filtres par prix -->
+      <div class="price-filters">
+        <div class="price-range">
+          <label>Prix (MAD)</label>
+          <div class="price-inputs">
+            <input 
+              type="number" 
+              [(ngModel)]="minPrice" 
+              (change)="onPriceFilter()"
+              placeholder="Min"
+              class="price-input"
+              [disabled]="loading"
+            >
+            <span>-</span>
+            <input 
+              type="number" 
+              [(ngModel)]="maxPrice" 
+              (change)="onPriceFilter()"
+              placeholder="Max"
+              class="price-input"
+              [disabled]="loading"
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtre par auteur -->
+      <div class="author-filter" *ngIf="books.length > 0">
+        <label for="authorSelect">Auteur</label>
+        <select 
+          id="authorSelect"
+          [(ngModel)]="selectedAuthor" 
+          (change)="onSearch()"
+          class="author-select"
+          [disabled]="loading"
+        >
+          <option value="">Tous les auteurs</option>
+          <option *ngFor="let author of getUniqueAuthors()" [value]="author">
+            {{ author }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Bouton pour effacer les filtres -->
+      <div class="filter-actions">
+        <button 
+          class="clear-filters-btn" 
+          (click)="clearFilters()"
+          [disabled]="loading"
+        >
+          Effacer les filtres
         </button>
       </div>
     </div>
@@ -61,7 +117,7 @@
         [class.selected]="isBookSelected(book)"
         (click)="toggleBookSelection(book)"
       >
-        <div class="book-cover" [style.background-image]="'url(' + book.cover + ')'">
+        <div class="book-cover" [style.background-image]="book.image ? 'url(' + book.image + ')' : 'url(assets/images/default-book.jpg)'">
           <div class="selection-indicator" *ngIf="isBookSelected(book)">
             ✓
           </div>
@@ -70,19 +126,57 @@
         <div class="book-info">
           <h3 class="book-title">{{ book.title }}</h3>
           <p class="book-author">{{ book.author }}</p>
-          <div class="book-rating">
-            <span class="stars">{{ '★'.repeat(book.rating) }}</span>
-            <span class="rating-value">{{ book.rating }}/5</span>
+          <div class="book-category" *ngIf="book.category">
+            <span class="category-badge">{{ book.category }}</span>
+          </div>
+          <div class="book-language" *ngIf="book.language">
+            <span class="language-badge">{{ book.language }}</span>
           </div>
           <p class="book-description">{{ book.description }}</p>
           <div class="book-price">
             <span class="current-price">{{ book.price }} MAD</span>
-            <span class="original-price" *ngIf="book.originalPrice">{{ book.originalPrice }} MAD</span>
           </div>
-          <div class="book-stock" *ngIf="book.stock !== undefined">
-            <span [class.out-of-stock]="book.stock === 0">{{ book.stock > 0 ? book.stock + ' en stock' : 'Rupture de stock' }}</span>
+          <div class="book-availability" *ngIf="book.isAvailable !== undefined">
+            <span [class.unavailable]="!book.isAvailable">
+              {{ book.isAvailable ? 'Disponible' : 'Non disponible' }}
+            </span>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="!loading && filteredBooks.length > 0 && totalPages > 1">
+      <div class="pagination-info">
+        <span>Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
+        <span>({{ totalElements }} livres au total)</span>
+      </div>
+      
+      <div class="pagination-controls">
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage === 0"
+          (click)="previousPage()"
+        >
+          ← Précédent
+        </button>
+        
+        <button 
+          *ngFor="let page of displayedPages" 
+          class="pagination-btn" 
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)"
+        >
+          {{ page + 1 }}
+        </button>
+        
+        <button 
+          class="pagination-btn" 
+          [disabled]="currentPage >= totalPages - 1"
+          (click)="nextPage()"
+        >
+          Suivant →
+        </button>
       </div>
     </div>
 
@@ -117,24 +211,56 @@
           </div>
           <div class="summary-total">
             <span>Total:</span>
-            <span>{{ selectedBooks | totalPrice }} MAD</span>
+            <span>{{ getTotalPrice() }} MAD</span>
           </div>
         </div>
 
-        <div class="order-form">
+        <!-- Success Message -->
+        <div class="success-message" *ngIf="orderSuccess">
+          <div class="success-icon">✅</div>
+          <h3>Commande envoyée avec succès!</h3>
+          <p>Vous recevrez une confirmation par email.</p>
+        </div>
+
+        <!-- Order Form -->
+        <div class="order-form" *ngIf="!orderSuccess">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="customerFirstName">Prénom *</label>
+              <input 
+                type="text" 
+                id="customerFirstName"
+                [(ngModel)]="customerFirstName"
+                [disabled]="loading"
+                required
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="customerLastName">Nom *</label>
+              <input 
+                type="text" 
+                id="customerLastName"
+                [(ngModel)]="customerLastName"
+                [disabled]="loading"
+                required
+              >
+            </div>
+          </div>
+          
           <div class="form-group">
-            <label for="customerName">Nom complet</label>
+            <label for="customerEmail">Email *</label>
             <input 
-              type="text" 
-              id="customerName"
-              [(ngModel)]="customerName"
+              type="email" 
+              id="customerEmail"
+              [(ngModel)]="customerEmail"
               [disabled]="loading"
               required
             >
           </div>
           
           <div class="form-group">
-            <label for="customerPhone">Numéro de téléphone</label>
+            <label for="customerPhone">Numéro de téléphone *</label>
             <input 
               type="tel" 
               id="customerPhone"
@@ -142,6 +268,28 @@
               [disabled]="loading"
               required
             >
+          </div>
+          
+          <div class="form-group">
+            <label for="customerAddress">Adresse de livraison *</label>
+            <textarea 
+              id="customerAddress"
+              [(ngModel)]="customerAddress"
+              [disabled]="loading"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="orderNotes">Notes supplémentaires (optionnel)</label>
+            <textarea 
+              id="orderNotes"
+              [(ngModel)]="orderNotes"
+              [disabled]="loading"
+              rows="2"
+              placeholder="Instructions spéciales de livraison..."
+            ></textarea>
           </div>
 
           <div class="error-message" *ngIf="error">
@@ -159,9 +307,9 @@
             <button 
               class="confirm-button" 
               (click)="submitOrder()"
-              [disabled]="loading || !customerName || !customerPhone"
+              [disabled]="loading || !customerFirstName || !customerLastName || !customerEmail || !customerPhone || !customerAddress"
             >
-              {{ loading ? 'Envoi en cours...' : 'Confirmer la commande' }}
+              {{ loading ? 'Envoi en cours...' : 'Confirmer la commande (' + getTotalPrice() + ' MAD)' }}
             </button>
           </div>
         </div>
