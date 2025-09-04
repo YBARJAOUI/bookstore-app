@@ -1,0 +1,86 @@
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1 class="hero-title">
+          Découvrez des livres qui <span class="accent">changent</span> votre monde
+        </h1>
+        <p class="hero-subtitle">
+          Une sélection soignée de best-sellers, de packs thématiques et d'offres irrésistibles.
+          Commande rapide: nom + numéro, et c'est tout.
+        </p>
+        
+        <div class="hero-actions">
+          <a routerLink="/all-books" class="btn btn-primary btn-large">
+            Explorer les livres
+          </a>
+          <a routerLink="/packs" class="btn btn-outline btn-large">
+            Voir les packs
+          </a>
+        </div>
+        
+        <div class="hero-metrics">
+          <div class="metric" *ngFor="let metric of metrics">
+            <div class="metric-value">{{ metric.value }}</div>
+            <div class="metric-label">{{ metric.label }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hero-visual">
+        <div class="book-showcase">
+          <div class="book book-1"></div>
+          <div class="book book-2"></div>
+          <div class="book book-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="container">
+    <div class="section-header">
+      <h2>Pourquoi choisir PageWave ?</h2>
+      <p>Une expérience de lecture moderne et personnalisée</p>
+    </div>
+    
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">📚</div>
+        <h3>Large sélection</h3>
+        <p>Plus de 20 livres soigneusement choisis dans différentes catégories</p>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">🚚</div>
+        <h3>Livraison rapide</h3>
+        <p>Livraison en 48h dans tout le Maroc avec suivi en temps réel</p>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">💎</div>
+        <h3>Packs exclusifs</h3>
+        <p>Des combinaisons intelligentes pour économiser et découvrir</p>
+      </div>
+      
+      <div class="feature">
+        <div class="feature-icon">🎁</div>
+        <h3>Offres spéciales</h3>
+        <p>Réductions et cadeaux pour nos clients fidèles</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="container">
+    <div class="cta-content">
+      <h2>Prêt à commencer votre aventure littéraire ?</h2>
+      <p>Sélectionnez au moins 10 livres et nous vous contacterons rapidement</p>
+      <a routerLink="/all-books" class="btn btn-primary btn-large">
+        Commencer maintenant
+      </a>
+    </div>
+  </div>
+</section>

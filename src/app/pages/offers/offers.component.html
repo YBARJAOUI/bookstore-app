@@ -1,0 +1,31 @@
+<div class="offers-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>Offres du moment</h1>
+      <p>Profitez des remises limitées et des cadeaux exclusifs</p>
+    </div>
+
+    <div class="offers-grid">
+      <div *ngFor="let offer of offers" class="offer-card">
+        <div class="offer-content">
+          <h3>{{ offer.title }}</h3>
+          <p>{{ offer.description }}</p>
+          <div class="offer-discount">{{ offer.discount }}</div>
+          <a routerLink="/all-books" class="btn btn-primary">J'en profite</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="offers-info">
+      <div class="info-card">
+        <h3>Conditions des offres</h3>
+        <ul>
+          <li>🎯 Offres valables jusqu'au 31 décembre 2024</li>
+          <li>📦 Livraison offerte à partir de 400 MAD</li>
+          <li>🎁 Cadeaux exclusifs pour les premières commandes</li>
+          <li>💳 Paiement sécurisé à la livraison</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

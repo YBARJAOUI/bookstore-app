@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Read(/C:\\Users\\LENOVO\\Desktop\\younes\\projet\\website/**)",
+      "Read(/C:\\Users\\LENOVO\\Desktop\\younes\\projet\\website\\bookstore-backend\\src\\main\\java\\com\\bookstore\\backend\\controller/**)",
+      "Read(/C:\\Users\\LENOVO\\Desktop\\younes\\projet\\website\\bookstore-backend\\src\\main\\java\\com\\bookstore\\backend\\entity/**)",
+      "Read(/C:\\Users\\LENOVO\\Desktop\\younes\\projet\\website\\bookstore-admin/**)",
+      "Read(/C:\\Users\\LENOVO\\Desktop\\younes\\projet\\website\\bookstore-admin\\src\\app/**)",
+      "Read(/C:\\Users\\LENOVO\\Desktop\\younes\\projet\\website\\bookstore-admin\\src\\app/**)",
+      "Bash(ng serve:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\Users\\LENOVO\\Desktop\\younes\\projet\\website\\bookstore-admin"
+    ]
+  }
+}

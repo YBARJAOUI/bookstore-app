@@ -1,0 +1,66 @@
+<div class="contact-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>Contact & Aide</h1>
+      <p>Besoin d'aide pour choisir ? Écrivez-nous, on répond vite.</p>
+    </div>
+
+    <div class="contact-content">
+      <div class="contact-info">
+        <h2>Nos coordonnées</h2>
+        <div class="info-grid">
+          <div *ngFor="let info of contactInfo" class="info-item">
+            <span class="info-icon">{{ info.icon }}</span>
+            <div class="info-details">
+              <span class="info-label">{{ info.label }}</span>
+              <span class="info-value">{{ info.value }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-actions">
+        <div class="action-card">
+          <h3>Commander maintenant</h3>
+          <p>Sélectionnez vos livres et passez votre commande en quelques clics</p>
+          <a routerLink="/all-books" class="btn btn-primary btn-large">
+            Commencer
+          </a>
+        </div>
+
+        <div class="action-card">
+          <h3>Voir nos packs</h3>
+          <p>Découvrez nos combinaisons intelligentes pour économiser</p>
+          <a routerLink="/packs" class="btn btn-outline btn-large">
+            Explorer
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-section">
+      <h2>Questions fréquentes</h2>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4>Comment fonctionne la commande ?</h4>
+          <p>Sélectionnez au moins 10 livres, remplissez vos coordonnées et nous vous contacterons rapidement pour finaliser votre commande.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h4>Quels sont les délais de livraison ?</h4>
+          <p>Livraison en 48h dans tout le Maroc. Nous vous tenons informés à chaque étape.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h4>Comment payer ma commande ?</h4>
+          <p>Paiement sécurisé à la livraison. Pas de paiement en ligne, vous payez quand vous recevez vos livres.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h4>Puis-je retourner un livre ?</h4>
+          <p>Oui, vous avez 14 jours pour retourner un livre en parfait état. Nous vous remboursons intégralement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

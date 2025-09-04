@@ -1,0 +1,171 @@
+<div class="all-books-page">
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <h1>Tous les livres</h1>
+      <p>Découvrez notre sélection de livres et commandez facilement</p>
+    </div>
+
+    <!-- Selection Progress -->
+    <div class="selection-progress" *ngIf="selectedBooks.length > 0">
+      <div class="progress-info">
+        <span class="selected-count">{{ selectedBooks.length }} livres sélectionnés</span>
+        <span class="total-price">{{ selectedBooks | totalPrice }} MAD</span>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="error">
+      {{ error }}
+      <button class="close-error" (click)="error = ''">×</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearch()"
+          placeholder="Rechercher un livre ou un auteur..."
+          class="search-input"
+          [disabled]="loading"
+        >
+        <span class="search-icon">🔍</span>
+      </div>
+      
+      <div class="category-filters">
+        <button 
+          *ngFor="let category of categories"
+          [class.active]="selectedCategory === category.value"
+          (click)="selectedCategory = category.value; onCategoryChange()"
+          class="category-btn"
+          [disabled]="loading"
+        >
+          {{ category.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement en cours...</p>
+    </div>
+
+    <!-- Books Grid -->
+    <div class="books-grid" *ngIf="!loading">
+      <div 
+        *ngFor="let book of filteredBooks" 
+        class="book-card"
+        [class.selected]="isBookSelected(book)"
+        (click)="toggleBookSelection(book)"
+      >
+        <div class="book-cover" [style.background-image]="'url(' + book.cover + ')'">
+          <div class="selection-indicator" *ngIf="isBookSelected(book)">
+            ✓
+          </div>
+        </div>
+        
+        <div class="book-info">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <p class="book-author">{{ book.author }}</p>
+          <div class="book-rating">
+            <span class="stars">{{ '★'.repeat(book.rating) }}</span>
+            <span class="rating-value">{{ book.rating }}/5</span>
+          </div>
+          <p class="book-description">{{ book.description }}</p>
+          <div class="book-price">
+            <span class="current-price">{{ book.price }} MAD</span>
+            <span class="original-price" *ngIf="book.originalPrice">{{ book.originalPrice }} MAD</span>
+          </div>
+          <div class="book-stock" *ngIf="book.stock !== undefined">
+            <span [class.out-of-stock]="book.stock === 0">{{ book.stock > 0 ? book.stock + ' en stock' : 'Rupture de stock' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div class="no-results" *ngIf="!loading && filteredBooks.length === 0">
+      <div class="no-results-content">
+        <span class="no-results-icon">📚</span>
+        <h3>Aucun livre trouvé</h3>
+        <p>Essayez de modifier vos critères de recherche</p>
+      </div>
+    </div>
+
+    <!-- Order Button -->
+    <div class="order-section" *ngIf="selectedBooks.length > 0">
+      <button class="order-button" (click)="openOrderModal()" [disabled]="loading">
+        Commander ({{ selectedBooks.length }} livres)
+      </button>
+    </div>
+
+    <!-- Order Modal -->
+    <div class="modal" *ngIf="showOrderModal">
+      <div class="modal-content">
+        <h2>Finaliser votre commande</h2>
+        
+        <div class="order-summary">
+          <h3>Récapitulatif</h3>
+          <div class="summary-items">
+            <div *ngFor="let book of selectedBooks" class="summary-item">
+              <span>{{ book.title }}</span>
+              <span>{{ book.price }} MAD</span>
+            </div>
+          </div>
+          <div class="summary-total">
+            <span>Total:</span>
+            <span>{{ selectedBooks | totalPrice }} MAD</span>
+          </div>
+        </div>
+
+        <div class="order-form">
+          <div class="form-group">
+            <label for="customerName">Nom complet</label>
+            <input 
+              type="text" 
+              id="customerName"
+              [(ngModel)]="customerName"
+              [disabled]="loading"
+              required
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="customerPhone">Numéro de téléphone</label>
+            <input 
+              type="tel" 
+              id="customerPhone"
+              [(ngModel)]="customerPhone"
+              [disabled]="loading"
+              required
+            >
+          </div>
+
+          <div class="error-message" *ngIf="error">
+            {{ error }}
+          </div>
+
+          <div class="modal-actions">
+            <button 
+              class="cancel-button" 
+              (click)="closeOrderModal()"
+              [disabled]="loading"
+            >
+              Annuler
+            </button>
+            <button 
+              class="confirm-button" 
+              (click)="submitOrder()"
+              [disabled]="loading || !customerName || !customerPhone"
+            >
+              {{ loading ? 'Envoi en cours...' : 'Confirmer la commande' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

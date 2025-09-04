@@ -1,0 +1,60 @@
+<header class="header">
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-content">
+        <a routerLink="/" class="brand">
+          <span class="brand-logo">📚</span>
+          <span class="brand-text">PageWave</span>
+        </a>
+
+        <div class="nav-menu">
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Accueil</a>
+          <a routerLink="/packs" routerLinkActive="active" class="nav-link">Packs</a>
+          <a routerLink="/all-books" routerLinkActive="active" class="nav-link">Tous les livres</a>
+          <a routerLink="/offers" routerLinkActive="active" class="nav-link">Offres</a>
+          <a routerLink="/contact" routerLinkActive="active" class="nav-link">Contact</a>
+        </div>
+
+        <div class="nav-actions">
+          <div class="cart-indicator" *ngIf="selectedBooksCount > 0">
+            <span class="cart-count">{{ selectedBooksCount }}</span>
+            <span class="cart-text">livres sélectionnés</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main class="main">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="brand-logo">📚</span>
+        <div>
+          <div class="brand-text">PageWave</div>
+          <small>Lire, apprendre, grandir.</small>
+        </div>
+      </div>
+      
+      <div class="footer-links">
+        <a routerLink="/packs">Packs</a>
+        <a routerLink="/all-books">Tous les livres</a>
+        <a routerLink="/offers">Offres</a>
+      </div>
+      
+      <div class="footer-copy">
+        © {{ currentYear }} PageWave. Tous droits réservés.
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast notifications -->
+<div class="toast" *ngIf="toastMessage">
+  {{ toastMessage }}
+</div>
