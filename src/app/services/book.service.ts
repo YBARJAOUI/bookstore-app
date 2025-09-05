@@ -1,21 +1,32 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map, shareReplay, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Book, Pack, DailyOffer, BookFilterRequest } from '../models/book.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookService {
-  private apiUrl = 'http://192.168.50.198:8080/api';
+  private apiUrl = 'http://localhost:8080/api';
   private selectedBooksSubject = new BehaviorSubject<Book[]>([]);
   public selectedBooks$ = this.selectedBooksSubject.asObservable();
+  
+  private booksCache$ = new Map<string, Observable<any>>();
 
   constructor(private http: HttpClient) {}
 
-  // Livres - API calls
+  // Livres - API calls avec cache
   getAllBooks(): Observable<Book[]> {
-    return this.http.get<Book[]>(`${this.apiUrl}/books/all`);
+    const cacheKey = 'all-books';
+    if (!this.booksCache$.has(cacheKey)) {
+      this.booksCache$.set(cacheKey, 
+        this.http.get<Book[]>(`${this.apiUrl}/books/all`).pipe(
+          shareReplay(1)
+        )
+      );
+    }
+    return this.booksCache$.get(cacheKey)!;
   }
 
   getBooksWithPagination(page: number = 0, size: number = 10): Observable<any> {
@@ -39,7 +50,11 @@ export class BookService {
 
   searchBooks(keyword: string): Observable<Book[]> {
     let params = new HttpParams().set('keyword', keyword);
-    return this.http.get<Book[]>(`${this.apiUrl}/books/search`, { params });
+    return this.http.get<Book[]>(`${this.apiUrl}/books/search`, { params }).pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      shareReplay(1)
+    );
   }
 
   filterBooksByPrice(minPrice: number, maxPrice: number): Observable<Book[]> {

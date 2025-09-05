@@ -2,23 +2,20 @@
   <nav class="navbar">
     <div class="container">
       <div class="nav-content">
-        <a routerLink="/" class="brand">
+        <a routerLink="/books" class="brand">
           <span class="brand-logo">📚</span>
-          <span class="brand-text">PageWave</span>
+          <span class="brand-text">مكتبة الكتب</span>
         </a>
 
         <div class="nav-menu">
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Accueil</a>
-          <a routerLink="/packs" routerLinkActive="active" class="nav-link">Packs</a>
-          <a routerLink="/all-books" routerLinkActive="active" class="nav-link">Tous les livres</a>
-          <a routerLink="/offers" routerLinkActive="active" class="nav-link">Offres</a>
-          <a routerLink="/contact" routerLinkActive="active" class="nav-link">Contact</a>
+          <a routerLink="/books" routerLinkActive="active" class="nav-link">الكتب</a>
+          <a routerLink="/offers" routerLinkActive="active" class="nav-link">العروض الخاصة</a>
         </div>
 
         <div class="nav-actions">
           <div class="cart-indicator" *ngIf="selectedBooksCount > 0">
             <span class="cart-count">{{ selectedBooksCount }}</span>
-            <span class="cart-text">livres sélectionnés</span>
+            <span class="cart-text">كتاب محدد</span>
           </div>
         </div>
       </div>
@@ -36,25 +33,24 @@
       <div class="footer-brand">
         <span class="brand-logo">📚</span>
         <div>
-          <div class="brand-text">PageWave</div>
-          <small>Lire, apprendre, grandir.</small>
+          <div class="brand-text">مكتبة الكتب</div>
+          <small>اقرأ، تعلم، انمُ</small>
         </div>
       </div>
       
       <div class="footer-links">
-        <a routerLink="/packs">Packs</a>
-        <a routerLink="/all-books">Tous les livres</a>
-        <a routerLink="/offers">Offres</a>
+        <a routerLink="/books">الكتب</a>
+        <a routerLink="/offers">العروض</a>
       </div>
       
       <div class="footer-copy">
-        © {{ currentYear }} PageWave. Tous droits réservés.
+        © {{ currentYear }} مكتبة الكتب. جميع الحقوق محفوظة.
       </div>
     </div>
   </div>
 </footer>
 
-<!-- Toast notifications -->
+<!-- إشعارات Toast -->
 <div class="toast" *ngIf="toastMessage">
   {{ toastMessage }}
 </div>

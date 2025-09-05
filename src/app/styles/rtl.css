@@ -1,0 +1,263 @@
+/* Styles RTL pour l'arabe */
+
+/* Direction générale */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Navigation et header */
+[dir="rtl"] .page-header h1,
+[dir="rtl"] .page-header p {
+  text-align: right;
+}
+
+/* Formulaires */
+[dir="rtl"] .form-group {
+  text-align: right;
+}
+
+[dir="rtl"] .form-group label {
+  text-align: right;
+  display: block;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+/* Boutons */
+[dir="rtl"] .modal-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .modal-actions button {
+  margin-left: 0;
+  margin-right: 10px;
+}
+
+[dir="rtl"] .modal-actions button:first-child {
+  margin-right: 0;
+}
+
+/* Filtres */
+[dir="rtl"] .filters {
+  text-align: right;
+}
+
+[dir="rtl"] .price-inputs {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .price-inputs span {
+  margin: 0 5px;
+}
+
+[dir="rtl"] .category-filters {
+  text-align: right;
+}
+
+[dir="rtl"] .filter-actions {
+  text-align: right;
+}
+
+/* Cartes de livres */
+[dir="rtl"] .book-info {
+  text-align: right;
+}
+
+[dir="rtl"] .book-title,
+[dir="rtl"] .book-author,
+[dir="rtl"] .book-description {
+  text-align: right;
+}
+
+[dir="rtl"] .book-price {
+  text-align: left; /* Les prix restent alignés à gauche */
+}
+
+/* Badges et étiquettes */
+[dir="rtl"] .category-badge,
+[dir="rtl"] .language-badge {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+/* Pagination */
+[dir="rtl"] .pagination {
+  direction: rtl;
+}
+
+[dir="rtl"] .pagination-controls {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .pagination-info {
+  text-align: right;
+}
+
+/* Progress et selection */
+[dir="rtl"] .progress-info {
+  justify-content: space-between;
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .selected-count {
+  text-align: right;
+}
+
+/* Recherche */
+[dir="rtl"] .search-box {
+  position: relative;
+}
+
+[dir="rtl"] .search-icon {
+  right: auto;
+  left: 10px;
+}
+
+[dir="rtl"] .search-input {
+  padding-right: 40px;
+  padding-left: 10px;
+}
+
+/* Modals */
+[dir="rtl"] .modal-content h2,
+[dir="rtl"] .modal-content h3 {
+  text-align: right;
+}
+
+[dir="rtl"] .summary-item {
+  justify-content: space-between;
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .summary-total {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+/* Offres et packs */
+[dir="rtl"] .offer-content,
+[dir="rtl"] .pack-content {
+  text-align: right;
+}
+
+[dir="rtl"] .offer-pricing,
+[dir="rtl"] .pack-info {
+  text-align: right;
+}
+
+[dir="rtl"] .time-remaining,
+[dir="rtl"] .stock-text {
+  text-align: right;
+}
+
+/* Messages d'erreur et succès */
+[dir="rtl"] .error-message,
+[dir="rtl"] .success-message,
+[dir="rtl"] .no-results-content,
+[dir="rtl"] .no-content-message {
+  text-align: right;
+}
+
+/* Loading */
+[dir="rtl"] .loading-spinner p {
+  text-align: right;
+}
+
+/* Grilles */
+[dir="rtl"] .books-grid,
+[dir="rtl"] .packs-grid,
+[dir="rtl"] .daily-offers-grid {
+  /* Les grilles CSS gardent leur disposition mais le texte est aligné à droite */
+}
+
+/* Flexbox adjustments pour RTL */
+[dir="rtl"] .form-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .form-row .form-group:first-child {
+  margin-right: 0;
+  margin-left: 10px;
+}
+
+[dir="rtl"] .form-row .form-group:last-child {
+  margin-left: 0;
+  margin-right: 10px;
+}
+
+/* Close button */
+[dir="rtl"] .close-error {
+  left: 10px;
+  right: auto;
+}
+
+/* Info cards */
+[dir="rtl"] .info-card,
+[dir="rtl"] .info-card ul,
+[dir="rtl"] .info-card li {
+  text-align: right;
+}
+
+/* Polices et espacement pour l'arabe */
+[dir="rtl"] {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', 'Helvetica', sans-serif;
+}
+
+/* Ajustements pour les chiffres arabes */
+[dir="rtl"] .arabic-numerals {
+  direction: ltr;
+  unicode-bidi: bidi-override;
+}
+
+/* Ajustements pour la saisie de texte en arabe */
+[dir="rtl"] input[type="text"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+/* Ajustements pour les champs numériques et téléphone */
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="tel"] {
+  text-align: left; /* Les numéros restent de gauche à droite */
+}
+
+/* Espacement pour l'arabe */
+[dir="rtl"] p,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
+  line-height: 1.6;
+}
+
+/* Icons et emojis - alignement */
+[dir="rtl"] .timer-icon,
+[dir="rtl"] .no-results-icon,
+[dir="rtl"] .success-icon {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+/* Price display adjustments */
+[dir="rtl"] .current-price,
+[dir="rtl"] .offer-price,
+[dir="rtl"] .price-new {
+  direction: ltr;
+  text-align: left;
+  display: inline-block;
+}
+
+/* Badges positioning */
+[dir="rtl"] .discount-badge,
+[dir="rtl"] .featured-badge {
+  right: auto;
+  left: 10px;
+}

@@ -14,7 +14,7 @@ import {
   providedIn: 'root'
 })
 export class OrderService {
-  private apiUrl = 'http://192.168.50.198:8080/api';
+  private apiUrl = 'http://192.168.43.122:8080/api';
 
   constructor(private http: HttpClient) {}
 

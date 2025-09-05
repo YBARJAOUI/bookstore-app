@@ -3,59 +3,69 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BookService } from '../../services/book.service';
 import { OrderService } from '../../services/order.service';
-import { Book, BookFilterRequest, SimpleOrderRequest, OrderItem } from '../../models/book.model';
-import { TotalPricePipe } from '../../pipes/total-price.pipe';
+import { Book, SimpleOrderRequest } from '../../models/book.model';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-all-books',
   standalone: true,
-  imports: [CommonModule, FormsModule, TotalPricePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './all-books.component.html',
-  styleUrl: './all-books.component.css'
+  styleUrls: ['./all-books.component.css', './filters-styles.css']
 })
 export class AllBooksComponent implements OnInit, OnDestroy {
   books: Book[] = [];
   filteredBooks: Book[] = [];
   selectedBooks: Book[] = [];
   
-  // Filtres
+  // المرشحات
   searchQuery = '';
-  selectedCategory = 'all';
+  selectedCategory = 'الكل';
+  selectedLanguage = 'الكل';
   minPrice: number | null = null;
   maxPrice: number | null = null;
-  selectedAuthor = '';
   
-  // Pagination
-  currentPage = 0;
-  pageSize = 10;
-  totalPages = 0;
-  totalElements = 0;
-  
-  // Modal de commande
+  // نموذج الطلب
   showOrderModal = false;
   customerFirstName = '';
   customerLastName = '';
   customerEmail = '';
   customerPhone = '';
   customerAddress = '';
+  customerCity = '';
   orderNotes = '';
   
-  // États
+  // الحالات
   loading = false;
   error = '';
   orderSuccess = false;
+  showFilters = false;
   
   private destroy$ = new Subject<void>();
   
   categories = [
-    { value: 'all', label: 'Tous' },
-    { value: 'fiction', label: 'Fiction' },
-    { value: 'développement', label: 'Développement' },
-    { value: 'business', label: 'Business' },
-    { value: 'jeunesse', label: 'Jeunesse' },
-    { value: 'science', label: 'Science' },
-    { value: 'histoire', label: 'Histoire' }
+    { value: 'الكل', label: 'جميع الفئات' },
+    { value: 'Fiction', label: 'الروايات' },
+    { value: 'Non-Fiction', label: 'غير روائي' },
+    { value: 'Science-Fiction', label: 'خيال علمي' },
+    { value: 'Science', label: 'العلوم' },
+    { value: 'Histoire', label: 'التاريخ' },
+    { value: 'Philosophie', label: 'الفلسفة' },
+    { value: 'Art', label: 'الفنون' },
+    { value: 'Cuisine', label: 'الطبخ' },
+    { value: 'Technologie', label: 'التكنولوجيا' },
+    { value: 'Santé', label: 'الصحة' },
+    { value: 'Jeunesse', label: 'الأطفال والشباب' },
+    { value: 'Romance', label: 'الرومانسية' },
+    { value: 'Thriller', label: 'الإثارة' },
+    { value: 'Fantasy', label: 'الخيال' }
+  ];
+
+  languages = [
+    { value: 'الكل', label: 'جميع اللغات' },
+    { value: 'francais', label: 'الفرنسية' },
+    { value: 'anglais', label: 'الإنجليزية' },
+    { value: 'العربية', label: 'العربية' }
   ];
 
   constructor(
@@ -82,75 +92,164 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
     
-    const filters: BookFilterRequest = {
-      keyword: this.searchQuery || undefined,
-      minPrice: this.minPrice || undefined,
-      maxPrice: this.maxPrice || undefined,
-      page: this.currentPage,
-      size: this.pageSize
-    };
-    
-    // Si une catégorie spécifique est sélectionnée, on utilise la recherche par mot-clé
-    if (this.selectedCategory !== 'all') {
-      filters.keyword = this.selectedCategory;
-    }
-    
-    this.bookService.getBooksWithPagination(this.currentPage, this.pageSize)
+    // Fallback to mock data if API fails
+    this.bookService.getAvailableBooks()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          this.books = response.content || response;
-          this.totalPages = response.totalPages || 0;
-          this.totalElements = response.totalElements || this.books.length;
+        next: (books) => {
+          this.books = books.length > 0 ? books : this.getMockBooks();
           this.applyFilters();
           this.loading = false;
         },
         error: (err) => {
-          // Fallback vers l'ancienne méthode si la pagination ne fonctionne pas
-          this.bookService.getAvailableBooks()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: (books) => {
-                this.books = books;
-                this.applyFilters();
-                this.loading = false;
-              },
-              error: (fallbackErr) => {
-                this.error = 'Erreur lors du chargement des livres';
-                this.loading = false;
-              }
-            });
+          console.warn('API failed, using mock data:', err);
+          this.books = this.getMockBooks();
+          this.applyFilters();
+          this.loading = false;
         }
       });
   }
 
-  onSearch() {
-    this.currentPage = 0; // Reset à la première page lors d'une recherche
-    this.loadBooks();
-  }
-  
-  onPriceFilter() {
-    this.currentPage = 0;
-    this.loadBooks();
-  }
-  
-  clearFilters() {
-    this.searchQuery = '';
-    this.selectedCategory = 'all';
-    this.minPrice = null;
-    this.maxPrice = null;
-    this.selectedAuthor = '';
-    this.currentPage = 0;
-    this.loadBooks();
+  getMockBooks(): Book[] {
+    return [
+      {
+        id: 1,
+        title: 'الأسود يليق بك',
+        author: 'أحلام مستغانمي',
+        description: 'رواية عاطفية رائعة تحكي قصة حب استثنائية في زمن الحرب والسلام',
+        price: 85,
+        image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'العربية',
+        category: 'Romance'
+      },
+      {
+        id: 2,
+        title: 'مئة عام من العزلة',
+        author: 'غابرييل غارسيا ماركيز',
+        description: 'تحفة أدبية عالمية تروي قصة عائلة بوينديا عبر مئة عام',
+        price: 120,
+        image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'francais',
+        category: 'Fiction'
+      },
+      {
+        id: 3,
+        title: 'الخيميائي',
+        author: 'باولو كويلو',
+        description: 'قصة ملهمة عن راعي أغنام يبحث عن كنز في الأهرامات المصرية',
+        price: 95,
+        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'francais',
+        category: 'Philosophie'
+      },
+      {
+        id: 4,
+        title: 'هاري بوتر وحجر الفيلسوف',
+        author: 'ج.ك. رولينغ',
+        description: 'المغامرة السحرية الأولى للصبي الساحر هاري بوتر',
+        price: 110,
+        image: 'https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'anglais',
+        category: 'Fantasy'
+      },
+      {
+        id: 5,
+        title: 'مدن الملح',
+        author: 'عبد الرحمن منيف',
+        description: 'رواية تاريخية تصور التحولات في الخليج العربي',
+        price: 130,
+        image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'العربية',
+        category: 'Histoire'
+      },
+      {
+        id: 6,
+        title: 'عقل لا يشيخ',
+        author: 'د. دانيال أمين',
+        description: 'دليل علمي للحفاظ على صحة الدماغ والذاكرة',
+        price: 75,
+        image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'العربية',
+        category: 'Santé'
+      },
+      {
+        id: 7,
+        title: 'أسرار الطبخ المغربي',
+        author: 'لالة فاطمة الزهراء',
+        description: 'مجموعة رائعة من الوصفات المغربية التقليدية والحديثة',
+        price: 65,
+        image: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'francais',
+        category: 'Cuisine'
+      },
+      {
+        id: 8,
+        title: 'الذكاء الاصطناعي',
+        author: 'د. محمد العريان',
+        description: 'مقدمة شاملة لعالم الذكاء الاصطناعي وتطبيقاته',
+        price: 140,
+        image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'العربية',
+        category: 'Technologie'
+      },
+      {
+        id: 9,
+        title: 'فن الرسم بالألوان المائية',
+        author: 'سارة أحمد',
+        description: 'تعلم تقنيات الرسم بالألوان المائية خطوة بخطوة',
+        price: 90,
+        image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'العربية',
+        category: 'Art'
+      },
+      {
+        id: 10,
+        title: 'أطفال الغابة',
+        author: 'نادية هاشم',
+        description: 'قصة مغامرات مثيرة للأطفال في عالم الطبيعة',
+        price: 55,
+        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'العربية',
+        category: 'Jeunesse'
+      },
+      {
+        id: 11,
+        title: 'دليل المسافر الذكي',
+        author: 'عمر السياح',
+        description: 'نصائح وحيل للسفر الاقتصادي والممتع حول العالم',
+        price: 80,
+        image: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'francais',
+        category: 'Non-Fiction'
+      },
+      {
+        id: 12,
+        title: 'النجوم تتحدث',
+        author: 'د. فاطمة الكوني',
+        description: 'رحلة مشوقة في عالم الفلك والكواكب',
+        price: 105,
+        image: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=600&fit=crop',
+        isAvailable: true,
+        language: 'العربية',
+        category: 'Science'
+      }
+    ];
   }
 
-  onCategoryChange() {
-    this.loadBooks();
-  }
-
-  private applyFilters() {
+  applyFilters() {
     this.filteredBooks = this.books.filter(book => {
-      // Filtre par recherche textuelle
+      // فلتر البحث النصي
       if (this.searchQuery.trim()) {
         const searchTerm = this.searchQuery.toLowerCase();
         const matchesSearch = book.title.toLowerCase().includes(searchTerm) ||
@@ -159,51 +258,47 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         if (!matchesSearch) return false;
       }
       
-      // Filtre par auteur
-      if (this.selectedAuthor.trim()) {
-        const authorTerm = this.selectedAuthor.toLowerCase();
-        if (!book.author.toLowerCase().includes(authorTerm)) return false;
+      // فلتر الفئة
+      if (this.selectedCategory !== 'الكل' && book.category !== this.selectedCategory) {
+        return false;
       }
       
-      // Filtre par prix
+      // فلتر اللغة
+      if (this.selectedLanguage !== 'الكل' && book.language !== this.selectedLanguage) {
+        return false;
+      }
+      
+      // فلتر السعر
       if (this.minPrice !== null && book.price < this.minPrice) return false;
       if (this.maxPrice !== null && book.price > this.maxPrice) return false;
       
       return true;
     });
   }
-  
-  // Pagination
-  nextPage() {
-    if (this.currentPage < this.totalPages - 1) {
-      this.currentPage++;
-      this.loadBooks();
-    }
+
+  onSearch() {
+    this.applyFilters();
   }
   
-  previousPage() {
-    if (this.currentPage > 0) {
-      this.currentPage--;
-      this.loadBooks();
-    }
+  onCategoryChange() {
+    this.applyFilters();
+  }
+
+  onLanguageChange() {
+    this.applyFilters();
   }
   
-  goToPage(page: number) {
-    if (page >= 0 && page < this.totalPages) {
-      this.currentPage = page;
-      this.loadBooks();
-    }
+  onPriceFilter() {
+    this.applyFilters();
   }
   
-  get displayedPages(): number[] {
-    const pages: number[] = [];
-    const start = Math.max(0, this.currentPage - 2);
-    const end = Math.min(this.totalPages, start + 5);
-    
-    for (let i = start; i < end; i++) {
-      pages.push(i);
-    }
-    return pages;
+  clearFilters() {
+    this.searchQuery = '';
+    this.selectedCategory = 'الكل';
+    this.selectedLanguage = 'الكل';
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.applyFilters();
   }
 
   toggleBookSelection(book: Book) {
@@ -218,7 +313,15 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     return this.selectedBooks.some(b => b.id === book.id);
   }
 
+  canOrder(): boolean {
+    return this.selectedBooks.length >= 10;
+  }
+
   openOrderModal() {
+    if (!this.canOrder()) {
+      this.error = 'يجب اختيار 10 كتب على الأقل لإتمام الطلب';
+      return;
+    }
     this.showOrderModal = true;
   }
 
@@ -229,35 +332,36 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     this.customerEmail = '';
     this.customerPhone = '';
     this.customerAddress = '';
+    this.customerCity = '';
     this.orderNotes = '';
     this.error = '';
     this.orderSuccess = false;
   }
 
   submitOrder() {
-    // Validation des champs obligatoires
+    // التحقق من صحة البيانات
     if (!this.customerFirstName || !this.customerLastName || 
         !this.customerEmail || !this.customerPhone || !this.customerAddress) {
-      this.error = 'Veuillez remplir tous les champs obligatoires';
+      this.error = 'يرجى ملء جميع الحقول المطلوبة';
       return;
     }
     
-    if (!this.selectedBooks.length) {
-      this.error = 'Veuillez sélectionner au moins un livre';
+    if (!this.canOrder()) {
+      this.error = 'يجب اختيار 10 كتب على الأقل';
       return;
     }
     
-    // Validation email
+    // التحقق من صحة البريد الإلكتروني
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(this.customerEmail)) {
-      this.error = 'Veuillez saisir une adresse email valide';
+      this.error = 'يرجى إدخال بريد إلكتروني صحيح';
       return;
     }
     
-    // Préparation de la commande
-    const orderItems: { bookId: number, quantity: number }[] = this.selectedBooks.map(book => ({
+    // إعداد الطلب
+    const orderItems = this.selectedBooks.map(book => ({
       bookId: book.id!,
-      quantity: 1 // Par défaut, quantité 1 pour chaque livre
+      quantity: 1
     }));
     
     const orderRequest: SimpleOrderRequest = {
@@ -265,7 +369,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
       lastName: this.customerLastName,
       email: this.customerEmail,
       phoneNumber: this.customerPhone,
-      address: this.customerAddress,
+      address: `${this.customerAddress}${this.customerCity ? ', ' + this.customerCity : ''}`,
       items: orderItems,
       notes: this.orderNotes || undefined
     };
@@ -281,26 +385,93 @@ export class AllBooksComponent implements OnInit, OnDestroy {
           this.bookService.clearSelectedBooks();
           this.loading = false;
           
-          // Fermer la modal après 2 secondes
+          // إغلاق النافذة بعد 3 ثواني
           setTimeout(() => {
             this.closeOrderModal();
-          }, 2000);
+          }, 3000);
         },
         error: (err) => {
-          console.error('Erreur lors de la commande:', err);
-          this.error = err.error?.message || 'Erreur lors de la soumission de la commande';
+          console.error('خطأ في الطلب:', err);
+          this.error = err.error?.message || 'خطأ في إرسال الطلب';
           this.loading = false;
         }
       });
   }
   
-  // Méthodes utilitaires
   getTotalPrice(): number {
     return this.selectedBooks.reduce((total, book) => total + book.price, 0);
   }
-  
-  getUniqueAuthors(): string[] {
-    const authors = [...new Set(this.books.map(book => book.author))];
-    return authors.sort();
+
+  getCategoryLabel(value?: string): string {
+    if (!value) return 'غير محدد';
+    const category = this.categories.find(c => c.value === value);
+    return category ? category.label : value;
+  }
+
+  getLanguageLabel(value?: string): string {
+    if (!value) return 'غير محدد';
+    const language = this.languages.find(l => l.value === value);
+    return language ? language.label : value;
+  }
+
+  getBookImageUrl(book: Book): string {
+    if (!book.image) {
+      return 'assets/images/default-book.svg';
+    }
+    
+    // If it's already a full URL, return as-is
+    if (book.image.startsWith('http')) {
+      return book.image;
+    }
+    
+    // If it's base64, return as-is
+    if (book.image.startsWith('data:')) {
+      return book.image;
+    }
+    
+    // If it's a relative path, construct full URL
+    return `http://localhost:8080/uploads/${book.image}`;
+  }
+
+  onImageError(event: any) {
+    event.target.src = 'assets/images/default-book.svg';
+  }
+
+  // Nouvelles méthodes pour les fonctionnalités améliorées
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
+  }
+
+  hasActiveFilters(): boolean {
+    return this.searchQuery.trim() !== '' || 
+           this.selectedCategory !== 'الكل' || 
+           this.selectedLanguage !== 'الكل' || 
+           this.minPrice !== null || 
+           this.maxPrice !== null;
+  }
+
+  selectCategory(category: string) {
+    this.selectedCategory = this.selectedCategory === category ? 'الكل' : category;
+    this.applyFilters();
+  }
+
+  selectLanguage(language: string) {
+    this.selectedLanguage = this.selectedLanguage === language ? 'الكل' : language;
+    this.applyFilters();
+  }
+
+  getSpecialOffers(): Book[] {
+    // Simuler des offres spéciales (livres avec prix < 100)
+    return this.books.filter(book => book.price < 100).slice(0, 4);
+  }
+
+  getDiscountPercent(book: Book): number {
+    const originalPrice = this.getOriginalPrice(book);
+    return Math.round(((originalPrice - book.price) / originalPrice) * 100);
+  }
+
+  getOriginalPrice(book: Book): number {
+    // Simuler un prix original (prix actuel + 20-40%)
+    return Math.round(book.price * (1.2 + Math.random() * 0.2));
   }
 }

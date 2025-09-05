@@ -1,70 +1,70 @@
-<div class="offers-page">
+<div class="offers-page" dir="rtl">
   <div class="container">
+    <!-- عنوان الصفحة -->
     <div class="page-header">
-      <h1>Offres du moment</h1>
-      <p>Profitez des remises limitées et des offres exclusives</p>
+      <h1>العروض الخاصة</h1>
+      <p>اكتشف أفضل الصفقات والعروض المحدودة الوقت</p>
     </div>
 
-    <!-- Error Message -->
+    <!-- رسائل الخطأ -->
     <div class="error-message" *ngIf="error">
       {{ error }}
       <button class="close-error" (click)="error = ''">×</button>
     </div>
 
-    <!-- Loading Spinner -->
+    <!-- حالة التحميل -->
     <div class="loading-spinner" *ngIf="loading">
       <div class="spinner"></div>
-      <p>Chargement des offres...</p>
+      <p>جاري تحميل العروض...</p>
     </div>
 
-    <!-- Daily Offers Section -->
+    <!-- العروض اليومية -->
     <div class="section" *ngIf="!loading && dailyOffers.length > 0">
       <div class="section-header">
-        <h2>🔥 Offres quotidiennes</h2>
-        <p>Promotions limitées dans le temps</p>
+        <h2>🔥 عروض اليوم</h2>
+        <p>عروض محدودة الوقت - لا تفوتها!</p>
       </div>
       
-      <div class="daily-offers-grid">
-        <div *ngFor="let offer of dailyOffers" class="daily-offer-card" [class.expired]="!isOfferValid(offer)">
-          <!-- Offer Image -->
+      <div class="offers-grid">
+        <div *ngFor="let offer of dailyOffers" class="offer-card" [class.expired]="!isOfferValid(offer)">
+          <!-- صورة العرض -->
           <div class="offer-image" *ngIf="offer.image">
             <img [src]="offer.image" [alt]="offer.title" />
             <div class="discount-badge" *ngIf="offer.discountPercentage">
               -{{ offer.discountPercentage }}%
             </div>
+            <div class="countdown-badge" *ngIf="isOfferValid(offer)">
+              {{ getDaysRemaining(offer.endDate) }} يوم متبقي
+            </div>
           </div>
           
-          <!-- Offer Content -->
+          <!-- محتوى العرض -->
           <div class="offer-content">
             <h3>{{ offer.title }}</h3>
             <p>{{ offer.description }}</p>
             
-            <!-- Pricing -->
+            <!-- الأسعار -->
             <div class="offer-pricing">
-              <span class="offer-price">{{ offer.offerPrice }} MAD</span>
-              <span class="original-price">{{ offer.originalPrice }} MAD</span>
-              <span class="savings">
-                Économisez {{ calculateSavings(offer.originalPrice, offer.offerPrice) }} MAD
-              </span>
+              <div class="price-row">
+                <span class="offer-price">{{ offer.offerPrice }} درهم</span>
+                <span class="original-price">{{ offer.originalPrice }} درهم</span>
+              </div>
+              <div class="savings">
+                وفر {{ calculateSavings(offer.originalPrice, offer.offerPrice) }} درهم!
+              </div>
             </div>
             
-            <!-- Product Info -->
+            <!-- معلومات المنتج -->
             <div class="product-info" *ngIf="offer.book || offer.pack">
               <div *ngIf="offer.book" class="product-type">
-                📖 Livre: {{ offer.book.title }}
+                📖 كتاب: {{ offer.book.title }}
               </div>
               <div *ngIf="offer.pack" class="product-type">
-                📦 Pack: {{ offer.pack.name }}
+                📦 باقة: {{ offer.pack.name }}
               </div>
             </div>
             
-            <!-- Time Remaining -->
-            <div class="time-remaining" *ngIf="isOfferValid(offer)">
-              <span class="timer-icon">⏰</span>
-              Plus que {{ getDaysRemaining(offer.endDate) }} jour(s) !
-            </div>
-            
-            <!-- Quantity Info -->
+            <!-- الكمية المتاحة -->
             <div class="quantity-info" *ngIf="offer.limitQuantity">
               <div class="stock-bar">
                 <div class="stock-progress" 
@@ -72,16 +72,16 @@
                 </div>
               </div>
               <span class="stock-text">
-                {{ offer.limitQuantity - (offer.soldQuantity || 0) }} / {{ offer.limitQuantity }} disponibles
+                {{ offer.limitQuantity - (offer.soldQuantity || 0) }} / {{ offer.limitQuantity }} متاح
               </span>
             </div>
             
-            <!-- Action Button -->
+            <!-- زر الإجراء -->
             <div class="offer-actions">
               <button class="btn btn-primary" 
                       [disabled]="!isOfferValid(offer) || (offer.limitQuantity && (offer.soldQuantity || 0) >= offer.limitQuantity)"
-                      (click)="loadOffersAndPacks()">
-                {{ isOfferValid(offer) ? "J'en profite" : "Offre expirée" }}
+                      (click)="selectOffer(offer)">
+                {{ isOfferValid(offer) ? "اختر هذا العرض" : "انتهى العرض" }}
               </button>
             </div>
           </div>
@@ -89,30 +89,30 @@
       </div>
     </div>
 
-    <!-- Packs Section -->
+    <!-- قسم الباقات -->
     <div class="section" *ngIf="!loading && packs.length > 0">
       <div class="section-header">
-        <h2>📦 Nos packs exclusifs</h2>
-        <p>Des collections spécialement sélectionnées pour vous</p>
+        <h2>📦 باقاتنا الحصرية</h2>
+        <p>مجموعات مختارة خصيصاً لك</p>
       </div>
       
       <div class="packs-grid">
         <div *ngFor="let pack of packs" class="pack-card" [class.featured]="pack.isFeatured">
-          <!-- Pack Image -->
+          <!-- صورة الباقة -->
           <div class="pack-image" *ngIf="pack.imageUrl">
             <img [src]="pack.imageUrl" [alt]="pack.name" />
-            <div class="featured-badge" *ngIf="pack.isFeatured">⭐ Vedette</div>
+            <div class="featured-badge" *ngIf="pack.isFeatured">⭐ مميز</div>
           </div>
           
-          <!-- Pack Content -->
+          <!-- محتوى الباقة -->
           <div class="pack-content">
             <h3>{{ pack.name }}</h3>
             <p>{{ pack.description }}</p>
             
-            <!-- Pack Info -->
+            <!-- معلومات الباقة -->
             <div class="pack-info">
               <div class="pack-price">
-                <span class="current-price">{{ pack.price }} MAD</span>
+                <span class="current-price">{{ pack.price }} درهم</span>
               </div>
               
               <div class="pack-category" *ngIf="pack.category">
@@ -121,17 +121,17 @@
               
               <div class="pack-stock" *ngIf="pack.stockQuantity !== undefined">
                 <span [class.low-stock]="pack.stockQuantity < 5" [class.out-of-stock]="pack.stockQuantity === 0">
-                  {{ pack.stockQuantity > 0 ? pack.stockQuantity + ' en stock' : 'Rupture de stock' }}
+                  {{ pack.stockQuantity > 0 ? pack.stockQuantity + ' متاح' : 'نفد المخزون' }}
                 </span>
               </div>
             </div>
             
-            <!-- Action Button -->
+            <!-- زر الإجراء -->
             <div class="pack-actions">
               <button class="btn btn-primary" 
                       [disabled]="!pack.isActive || pack.stockQuantity === 0"
-                      (click)="loadOffersAndPacks()">
-                {{ pack.stockQuantity === 0 ? 'Rupture de stock' : 'Voir le pack' }}
+                      (click)="selectPack(pack)">
+                {{ pack.stockQuantity === 0 ? 'نفد المخزون' : 'اطلب الباقة' }}
               </button>
             </div>
           </div>
@@ -139,27 +139,188 @@
       </div>
     </div>
 
-    <!-- No Content Message -->
+    <!-- رسالة عدم وجود محتوى -->
     <div class="no-content" *ngIf="!loading && dailyOffers.length === 0 && packs.length === 0">
       <div class="no-content-message">
         <span class="no-content-icon">🎁</span>
-        <h3>Aucune offre disponible pour le moment</h3>
-        <p>Revenez bientôt pour découvrir nos nouvelles promotions !</p>
-        <a routerLink="/all-books" class="btn btn-primary">Voir tous les livres</a>
+        <h3>لا توجد عروض متاحة حالياً</h3>
+        <p>عد قريباً لاكتشاف عروضنا الجديدة!</p>
+        <a routerLink="/books" class="btn btn-primary">تصفح جميع الكتب</a>
       </div>
     </div>
 
-    <!-- Info Section -->
+    <!-- معلومات العروض -->
     <div class="offers-info" *ngIf="!loading && (dailyOffers.length > 0 || packs.length > 0)">
       <div class="info-card">
-        <h3>Conditions des offres</h3>
+        <h3>شروط العروض</h3>
         <ul>
-          <li>🎯 Offres valables dans la limite des stocks disponibles</li>
-          <li>📦 Livraison rapide partout au Maroc</li>
-          <li>🎁 Offres non cumulables avec d'autres promotions</li>
-          <li>💳 Paiement sécurisé à la livraison</li>
-          <li>📞 Service client disponible pour vous accompagner</li>
+          <li>🎯 العروض سارية في حدود المخزون المتاح</li>
+          <li>📦 توصيل سريع في جميع أنحاء المغرب</li>
+          <li>🎁 العروض غير قابلة للدمج مع عروض أخرى</li>
+          <li>💳 دفع آمن عند الاستلام</li>
+          <li>📞 خدمة العملاء متاحة لمساعدتك</li>
         </ul>
+      </div>
+    </div>
+
+    <!-- نافذة تأكيد العرض -->
+    <div class="modal" *ngIf="showOfferModal" (click)="closeOfferModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2>تأكيد اختيار العرض</h2>
+        
+        <!-- تفاصيل العرض -->
+        <div class="offer-details" *ngIf="selectedOffer">
+          <div class="offer-summary">
+            <div class="offer-image-small" *ngIf="selectedOffer.image">
+              <img [src]="selectedOffer.image" [alt]="selectedOffer.title" />
+            </div>
+            <div class="offer-info">
+              <h3>{{ selectedOffer.title }}</h3>
+              <p>{{ selectedOffer.description }}</p>
+              <div class="price-info">
+                <span class="final-price">{{ selectedOffer.offerPrice }} درهم</span>
+                <span class="original-price">بدلاً من {{ selectedOffer.originalPrice }} درهم</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- تفاصيل الباقة -->
+        <div class="pack-details" *ngIf="selectedPack">
+          <div class="pack-summary">
+            <div class="pack-image-small" *ngIf="selectedPack.imageUrl">
+              <img [src]="selectedPack.imageUrl" [alt]="selectedPack.name" />
+            </div>
+            <div class="pack-info">
+              <h3>{{ selectedPack.name }}</h3>
+              <p>{{ selectedPack.description }}</p>
+              <div class="price-info">
+                <span class="final-price">{{ selectedPack.price }} درهم</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- رسالة النجاح -->
+        <div class="success-message" *ngIf="orderSuccess">
+          <div class="success-icon">✅</div>
+          <h3>تم إرسال طلبك بنجاح!</h3>
+          <p>سنتواصل معك قريباً لتأكيد الطلب</p>
+        </div>
+
+        <!-- نموذج الطلب -->
+        <div class="order-form" *ngIf="!orderSuccess">
+          <h3>أدخل بياناتك لإتمام الطلب</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="customerFirstName">الاسم الأول *</label>
+              <input 
+                type="text" 
+                id="customerFirstName"
+                [(ngModel)]="customerFirstName"
+                [disabled]="loading"
+                required
+                placeholder="أدخل اسمك الأول"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="customerLastName">اسم العائلة *</label>
+              <input 
+                type="text" 
+                id="customerLastName"
+                [(ngModel)]="customerLastName"
+                [disabled]="loading"
+                required
+                placeholder="أدخل اسم عائلتك"
+              >
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="customerEmail">البريد الإلكتروني *</label>
+            <input 
+              type="email" 
+              id="customerEmail"
+              [(ngModel)]="customerEmail"
+              [disabled]="loading"
+              required
+              placeholder="example@email.com"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="customerPhone">رقم الهاتف *</label>
+            <input 
+              type="tel" 
+              id="customerPhone"
+              [(ngModel)]="customerPhone"
+              [disabled]="loading"
+              required
+              placeholder="0612345678"
+            >
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="customerAddress">العنوان *</label>
+              <input 
+                type="text" 
+                id="customerAddress"
+                [(ngModel)]="customerAddress"
+                [disabled]="loading"
+                required
+                placeholder="الشارع، الحي..."
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="customerCity">المدينة</label>
+              <input 
+                type="text" 
+                id="customerCity"
+                [(ngModel)]="customerCity"
+                [disabled]="loading"
+                placeholder="المدينة"
+              >
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="orderNotes">ملاحظات إضافية</label>
+            <textarea 
+              id="orderNotes"
+              [(ngModel)]="orderNotes"
+              [disabled]="loading"
+              rows="3"
+              placeholder="أي ملاحظات خاصة بطلبك..."
+            ></textarea>
+          </div>
+
+          <!-- رسالة خطأ -->
+          <div class="error-message" *ngIf="error">
+            {{ error }}
+          </div>
+
+          <!-- أزرار النافذة -->
+          <div class="modal-actions">
+            <button 
+              class="cancel-button" 
+              (click)="closeOfferModal()"
+              [disabled]="loading"
+            >
+              إلغاء
+            </button>
+            <button 
+              class="confirm-button" 
+              (click)="submitOfferOrder()"
+              [disabled]="loading || !customerFirstName || !customerLastName || !customerEmail || !customerPhone || !customerAddress"
+            >
+              {{ loading ? 'جاري الإرسال...' : 'تأكيد الطلب' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

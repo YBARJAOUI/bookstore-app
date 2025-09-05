@@ -1,115 +1,223 @@
-<div class="all-books-page">
+<div class="books-page" dir="rtl">
   <div class="container">
-    <!-- Header -->
+    <!-- عنوان الصفحة -->
     <div class="page-header">
-      <h1>Tous les livres</h1>
-      <p>Découvrez notre sélection de livres et commandez facilement</p>
-    </div>
-
-    <!-- Selection Progress -->
-    <div class="selection-progress" *ngIf="selectedBooks.length > 0">
-      <div class="progress-info">
-        <span class="selected-count">{{ selectedBooks.length }} livres sélectionnés</span>
-        <span class="total-price">{{ selectedBooks | totalPrice }} MAD</span>
+      <div class="header-content">
+        <div class="header-text">
+          <h1>📚 مكتبة الكتب الرقمية</h1>
+          <p>اكتشف عالماً من المعرفة والثقافة • اختر 10 كتب على الأقل واطلب بسهولة</p>
+        </div>
+        <div class="header-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ filteredBooks.length }}+</span>
+            <span class="stat-label">كتاب متاح</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ selectedBooks.length }}</span>
+            <span class="stat-label">كتاب محدد</span>
+          </div>
+          <div class="stat-item" *ngIf="selectedBooks.length > 0">
+            <span class="stat-number">{{ getTotalPrice() }}</span>
+            <span class="stat-label">درهم</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Error Message -->
+    <!-- عروض خاصة -->
+    <div class="special-offers" *ngIf="getSpecialOffers().length > 0">
+      <div class="section-header">
+        <h2>🔥 عروض خاصة</h2>
+        <span class="offers-count">{{ getSpecialOffers().length }} عروض متاحة</span>
+      </div>
+      <div class="offers-carousel">
+        <div 
+          *ngFor="let offer of getSpecialOffers()" 
+          class="offer-card"
+          [class.selected]="isBookSelected(offer)"
+          (click)="toggleBookSelection(offer)"
+        >
+          <div class="offer-badge">خصم {{ getDiscountPercent(offer) }}%</div>
+          <div class="offer-image">
+            <img [src]="getBookImageUrl(offer)" [alt]="offer.title">
+          </div>
+          <div class="offer-info">
+            <h4>{{ offer.title }}</h4>
+            <p class="offer-author">{{ offer.author }}</p>
+            <div class="price-comparison">
+              <span class="original-price">{{ getOriginalPrice(offer) }} درهم</span>
+              <span class="offer-price">{{ offer.price }} درهم</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- مؤشر التقدم -->
+    <div class="selection-progress" *ngIf="selectedBooks.length > 0">
+      <div class="progress-info">
+        <span class="selected-count">{{ selectedBooks.length }} كتاب محدد</span>
+        <span class="progress-bar">
+          <span class="progress-fill" [style.width.%]="(selectedBooks.length / 10) * 100"></span>
+        </span>
+        <span class="total-price">{{ getTotalPrice() }} درهم</span>
+      </div>
+      <div class="progress-text">
+        <span *ngIf="selectedBooks.length < 10" class="remaining">
+          تحتاج {{ 10 - selectedBooks.length }} كتب أخرى للطلب
+        </span>
+        <span *ngIf="selectedBooks.length >= 10" class="ready">
+          ✓ يمكنك الآن إتمام الطلب
+        </span>
+      </div>
+    </div>
+
+    <!-- رسائل الخطأ -->
     <div class="error-message" *ngIf="error">
       {{ error }}
       <button class="close-error" (click)="error = ''">×</button>
     </div>
 
-    <!-- Filters -->
-    <div class="filters">
-      <!-- Recherche textuelle -->
-      <div class="search-box">
-        <input 
-          type="text" 
-          [(ngModel)]="searchQuery" 
-          (input)="onSearch()"
-          placeholder="Rechercher par titre, auteur ou description..."
-          class="search-input"
-          [disabled]="loading"
-        >
-        <span class="search-icon">🔍</span>
-      </div>
-      
-      <!-- Filtres par catégorie -->
-      <div class="category-filters">
-        <button 
-          *ngFor="let category of categories"
-          [class.active]="selectedCategory === category.value"
-          (click)="selectedCategory = category.value; onCategoryChange()"
-          class="category-btn"
-          [disabled]="loading"
-        >
-          {{ category.label }}
+    <!-- المرشحات المحسنة -->
+    <div class="filters-section">
+      <div class="filters-header">
+        <h3>🔍 البحث والمرشحات</h3>
+        <button class="filters-toggle" (click)="toggleFilters()">
+          {{ showFilters ? 'إخفاء المرشحات' : 'إظهار المرشحات' }}
         </button>
       </div>
 
-      <!-- Filtres par prix -->
-      <div class="price-filters">
-        <div class="price-range">
-          <label>Prix (MAD)</label>
-          <div class="price-inputs">
-            <input 
-              type="number" 
-              [(ngModel)]="minPrice" 
-              (change)="onPriceFilter()"
-              placeholder="Min"
-              class="price-input"
-              [disabled]="loading"
-            >
-            <span>-</span>
-            <input 
-              type="number" 
-              [(ngModel)]="maxPrice" 
-              (change)="onPriceFilter()"
-              placeholder="Max"
-              class="price-input"
-              [disabled]="loading"
-            >
+      <!-- البحث الرئيسي -->
+      <div class="main-search">
+        <div class="search-container">
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (input)="onSearch()"
+            placeholder="ابحث في مكتبة الكتب... (عنوان، مؤلف، وصف)"
+            class="search-input"
+            [disabled]="loading"
+          >
+          <div class="search-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </div>
+          <button *ngIf="searchQuery" class="clear-search" (click)="searchQuery = ''; onSearch()">
+            ×
+          </button>
+        </div>
+      </div>
+      
+      <!-- مرشحات متقدمة -->
+      <div class="advanced-filters" [class.visible]="showFilters">
+        <div class="filter-chips">
+          <!-- مرشحات الفئات كرقائق -->
+          <div class="filter-chip-group">
+            <label class="chip-label">الفئات:</label>
+            <div class="chips-container">
+              <button 
+                *ngFor="let category of categories.slice(1)" 
+                class="filter-chip"
+                [class.active]="selectedCategory === category.value"
+                (click)="selectCategory(category.value)"
+              >
+                {{ category.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- مرشحات اللغات كرقائق -->
+          <div class="filter-chip-group">
+            <label class="chip-label">اللغات:</label>
+            <div class="chips-container">
+              <button 
+                *ngFor="let language of languages.slice(1)" 
+                class="filter-chip language-chip"
+                [class.active]="selectedLanguage === language.value"
+                (click)="selectLanguage(language.value)"
+              >
+                {{ language.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- مرشح السعر التفاعلي -->
+          <div class="price-filter-section">
+            <label class="chip-label">نطاق السعر:</label>
+            <div class="price-range-container">
+              <div class="price-inputs">
+                <div class="price-input-group">
+                  <input 
+                    type="number" 
+                    [(ngModel)]="minPrice" 
+                    (change)="onPriceFilter()"
+                    placeholder="0"
+                    class="price-input"
+                    [disabled]="loading"
+                  >
+                  <span class="input-label">درهم من</span>
+                </div>
+                <span class="price-separator">→</span>
+                <div class="price-input-group">
+                  <input 
+                    type="number" 
+                    [(ngModel)]="maxPrice" 
+                    (change)="onPriceFilter()"
+                    placeholder="500"
+                    class="price-input"
+                    [disabled]="loading"
+                  >
+                  <span class="input-label">درهم إلى</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- أزرار العمليات -->
+          <div class="filter-actions">
+            <button class="clear-filters-btn" (click)="clearFilters()" [disabled]="loading">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+              </svg>
+              مسح الكل
+            </button>
+            <button class="apply-filters-btn" (click)="applyFilters()" [disabled]="loading">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20,6 9,17 4,12"></polyline>
+              </svg>
+              تطبيق المرشحات
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Filtre par auteur -->
-      <div class="author-filter" *ngIf="books.length > 0">
-        <label for="authorSelect">Auteur</label>
-        <select 
-          id="authorSelect"
-          [(ngModel)]="selectedAuthor" 
-          (change)="onSearch()"
-          class="author-select"
-          [disabled]="loading"
-        >
-          <option value="">Tous les auteurs</option>
-          <option *ngFor="let author of getUniqueAuthors()" [value]="author">
-            {{ author }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Bouton pour effacer les filtres -->
-      <div class="filter-actions">
-        <button 
-          class="clear-filters-btn" 
-          (click)="clearFilters()"
-          [disabled]="loading"
-        >
-          Effacer les filtres
-        </button>
+      <!-- إحصائيات النتائج -->
+      <div class="results-summary">
+        <div class="results-count">
+          <span class="count-number">{{ filteredBooks.length }}</span>
+          <span class="count-text">كتاب متاح</span>
+        </div>
+        <div class="active-filters" *ngIf="hasActiveFilters()">
+          <span class="filters-active">مرشحات فعالة:</span>
+          <span *ngIf="searchQuery" class="active-filter">البحث: "{{ searchQuery }}"</span>
+          <span *ngIf="selectedCategory !== 'الكل'" class="active-filter">{{ getCategoryLabel(selectedCategory) }}</span>
+          <span *ngIf="selectedLanguage !== 'الكل'" class="active-filter">{{ getLanguageLabel(selectedLanguage) }}</span>
+          <span *ngIf="minPrice || maxPrice" class="active-filter">
+            السعر: {{ minPrice || 0 }}-{{ maxPrice || '∞' }} درهم
+          </span>
+        </div>
       </div>
     </div>
 
-    <!-- Loading Spinner -->
+    <!-- حالة التحميل -->
     <div class="loading-spinner" *ngIf="loading">
       <div class="spinner"></div>
-      <p>Chargement en cours...</p>
+      <p>جاري التحميل...</p>
     </div>
 
-    <!-- Books Grid -->
+    <!-- شبكة الكتب -->
     <div class="books-grid" *ngIf="!loading">
       <div 
         *ngFor="let book of filteredBooks" 
@@ -117,199 +225,203 @@
         [class.selected]="isBookSelected(book)"
         (click)="toggleBookSelection(book)"
       >
-        <div class="book-cover" [style.background-image]="book.image ? 'url(' + book.image + ')' : 'url(assets/images/default-book.jpg)'">
+        <!-- صورة الكتاب -->
+        <div class="book-cover">
+          <img 
+            [src]="getBookImageUrl(book)" 
+            [alt]="book.title"
+            class="book-image"
+            (error)="onImageError($event)"
+            loading="lazy"
+          >
           <div class="selection-indicator" *ngIf="isBookSelected(book)">
-            ✓
+            <span class="checkmark">✓</span>
+          </div>
+          <div class="book-price-tag">
+            <span class="price-amount">{{ book.price }}</span>
+            <span class="currency">درهم</span>
+          </div>
+          <div class="book-language-badge" *ngIf="book.language">
+            {{ getLanguageLabel(book.language) }}
           </div>
         </div>
         
+        <!-- معلومات الكتاب -->
         <div class="book-info">
           <h3 class="book-title">{{ book.title }}</h3>
           <p class="book-author">{{ book.author }}</p>
-          <div class="book-category" *ngIf="book.category">
-            <span class="category-badge">{{ book.category }}</span>
+          
+          <div class="book-meta">
+            <span class="book-category">{{ getCategoryLabel(book.category) }}</span>
+            <span class="book-language">{{ getLanguageLabel(book.language) }}</span>
           </div>
-          <div class="book-language" *ngIf="book.language">
-            <span class="language-badge">{{ book.language }}</span>
-          </div>
+
           <p class="book-description">{{ book.description }}</p>
-          <div class="book-price">
-            <span class="current-price">{{ book.price }} MAD</span>
-          </div>
-          <div class="book-availability" *ngIf="book.isAvailable !== undefined">
-            <span [class.unavailable]="!book.isAvailable">
-              {{ book.isAvailable ? 'Disponible' : 'Non disponible' }}
-            </span>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="pagination" *ngIf="!loading && filteredBooks.length > 0 && totalPages > 1">
-      <div class="pagination-info">
-        <span>Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
-        <span>({{ totalElements }} livres au total)</span>
-      </div>
-      
-      <div class="pagination-controls">
-        <button 
-          class="pagination-btn" 
-          [disabled]="currentPage === 0"
-          (click)="previousPage()"
-        >
-          ← Précédent
-        </button>
-        
-        <button 
-          *ngFor="let page of displayedPages" 
-          class="pagination-btn" 
-          [class.active]="page === currentPage"
-          (click)="goToPage(page)"
-        >
-          {{ page + 1 }}
-        </button>
-        
-        <button 
-          class="pagination-btn" 
-          [disabled]="currentPage >= totalPages - 1"
-          (click)="nextPage()"
-        >
-          Suivant →
-        </button>
-      </div>
-    </div>
-
-    <!-- No Results -->
+    <!-- لا توجد نتائج -->
     <div class="no-results" *ngIf="!loading && filteredBooks.length === 0">
       <div class="no-results-content">
         <span class="no-results-icon">📚</span>
-        <h3>Aucun livre trouvé</h3>
-        <p>Essayez de modifier vos critères de recherche</p>
+        <h3>لم يتم العثور على كتب</h3>
+        <p>جرب تعديل معايير البحث</p>
       </div>
     </div>
 
-    <!-- Order Button -->
+    <!-- زر الطلب -->
     <div class="order-section" *ngIf="selectedBooks.length > 0">
-      <button class="order-button" (click)="openOrderModal()" [disabled]="loading">
-        Commander ({{ selectedBooks.length }} livres)
+      <button 
+        class="order-button" 
+        [class.ready]="canOrder()"
+        (click)="openOrderModal()" 
+        [disabled]="loading"
+      >
+        <span *ngIf="!canOrder()">
+          اختر {{ 10 - selectedBooks.length }} كتب أخرى ({{ selectedBooks.length }}/10)
+        </span>
+        <span *ngIf="canOrder()">
+          اطلب الآن ({{ selectedBooks.length }} كتاب - {{ getTotalPrice() }} درهم)
+        </span>
       </button>
     </div>
 
-    <!-- Order Modal -->
-    <div class="modal" *ngIf="showOrderModal">
-      <div class="modal-content">
-        <h2>Finaliser votre commande</h2>
+    <!-- نافذة الطلب -->
+    <div class="modal" *ngIf="showOrderModal" (click)="closeOrderModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2>إتمام الطلب</h2>
         
+        <!-- ملخص الطلب -->
         <div class="order-summary">
-          <h3>Récapitulatif</h3>
+          <h3>ملخص طلبك</h3>
           <div class="summary-items">
             <div *ngFor="let book of selectedBooks" class="summary-item">
               <span>{{ book.title }}</span>
-              <span>{{ book.price }} MAD</span>
+              <span>{{ book.price }} درهم</span>
             </div>
           </div>
           <div class="summary-total">
-            <span>Total:</span>
-            <span>{{ getTotalPrice() }} MAD</span>
+            <span>المجموع:</span>
+            <span>{{ getTotalPrice() }} درهم</span>
           </div>
         </div>
 
-        <!-- Success Message -->
+        <!-- رسالة النجاح -->
         <div class="success-message" *ngIf="orderSuccess">
           <div class="success-icon">✅</div>
-          <h3>Commande envoyée avec succès!</h3>
-          <p>Vous recevrez une confirmation par email.</p>
+          <h3>تم إرسال طلبك بنجاح!</h3>
+          <p>سنتواصل معك قريباً لتأكيد الطلب</p>
         </div>
 
-        <!-- Order Form -->
+        <!-- نموذج الطلب -->
         <div class="order-form" *ngIf="!orderSuccess">
           <div class="form-row">
             <div class="form-group">
-              <label for="customerFirstName">Prénom *</label>
+              <label for="customerFirstName">الاسم الأول *</label>
               <input 
                 type="text" 
                 id="customerFirstName"
                 [(ngModel)]="customerFirstName"
                 [disabled]="loading"
                 required
+                placeholder="أدخل اسمك الأول"
               >
             </div>
             
             <div class="form-group">
-              <label for="customerLastName">Nom *</label>
+              <label for="customerLastName">اسم العائلة *</label>
               <input 
                 type="text" 
                 id="customerLastName"
                 [(ngModel)]="customerLastName"
                 [disabled]="loading"
                 required
+                placeholder="أدخل اسم عائلتك"
               >
             </div>
           </div>
           
           <div class="form-group">
-            <label for="customerEmail">Email *</label>
+            <label for="customerEmail">البريد الإلكتروني *</label>
             <input 
               type="email" 
               id="customerEmail"
               [(ngModel)]="customerEmail"
               [disabled]="loading"
               required
+              placeholder="example@email.com"
             >
           </div>
           
           <div class="form-group">
-            <label for="customerPhone">Numéro de téléphone *</label>
+            <label for="customerPhone">رقم الهاتف *</label>
             <input 
               type="tel" 
               id="customerPhone"
               [(ngModel)]="customerPhone"
               [disabled]="loading"
               required
+              placeholder="0612345678"
             >
           </div>
-          
-          <div class="form-group">
-            <label for="customerAddress">Adresse de livraison *</label>
-            <textarea 
-              id="customerAddress"
-              [(ngModel)]="customerAddress"
-              [disabled]="loading"
-              rows="3"
-              required
-            ></textarea>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="customerAddress">العنوان *</label>
+              <input 
+                type="text" 
+                id="customerAddress"
+                [(ngModel)]="customerAddress"
+                [disabled]="loading"
+                required
+                placeholder="الشارع، الحي..."
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="customerCity">المدينة</label>
+              <input 
+                type="text" 
+                id="customerCity"
+                [(ngModel)]="customerCity"
+                [disabled]="loading"
+                placeholder="المدينة"
+              >
+            </div>
           </div>
           
           <div class="form-group">
-            <label for="orderNotes">Notes supplémentaires (optionnel)</label>
+            <label for="orderNotes">ملاحظات إضافية</label>
             <textarea 
               id="orderNotes"
               [(ngModel)]="orderNotes"
               [disabled]="loading"
-              rows="2"
-              placeholder="Instructions spéciales de livraison..."
+              rows="3"
+              placeholder="أي ملاحظات خاصة بطلبك..."
             ></textarea>
           </div>
 
+          <!-- رسالة خطأ -->
           <div class="error-message" *ngIf="error">
             {{ error }}
           </div>
 
+          <!-- أزرار النافذة -->
           <div class="modal-actions">
             <button 
               class="cancel-button" 
               (click)="closeOrderModal()"
               [disabled]="loading"
             >
-              Annuler
+              إلغاء
             </button>
             <button 
               class="confirm-button" 
               (click)="submitOrder()"
               [disabled]="loading || !customerFirstName || !customerLastName || !customerEmail || !customerPhone || !customerAddress"
             >
-              {{ loading ? 'Envoi en cours...' : 'Confirmer la commande (' + getTotalPrice() + ' MAD)' }}
+              {{ loading ? 'جاري الإرسال...' : 'تأكيد الطلب (' + getTotalPrice() + ' درهم)' }}
             </button>
           </div>
         </div>
